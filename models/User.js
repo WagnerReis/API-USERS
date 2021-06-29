@@ -1,9 +1,10 @@
 var knex = require("../database/connection");
 var bcrypt = require("bcrypt");
+var PasswordToken = require("./PasswordToken");
 
 class User{
 
-  static async findAll(){
+  async findAll(){
     try{
       var result = await knex.select(["id", "email", "role", "name"]).table("users");
       return result;
@@ -13,7 +14,7 @@ class User{
     }
   }
 
-  static async findById(id){
+  async findById(id){
     try{
       var result = await knex.select(["id", "email", "role", "name"]).where({id: id}).table("users");
       
@@ -28,7 +29,7 @@ class User{
     }
   }
 
-  static async findByEmail(email){
+  async findByEmail(email){
     try{
       var result = await knex.select(["id", "email", "role", "name"]).where({email: email}).table("users");
       
@@ -43,7 +44,7 @@ class User{
     }
   }
 
-  static async new(email, password, name){
+  async new(email, password, name){
     try{
       password = password.toString();
       var hash = await bcrypt.hash(password, 10);
@@ -53,7 +54,7 @@ class User{
     }
   }
 
-  static async findEmail(email){
+  async findEmail(email){
     try{
       var result = await knex.select("*").table("users").where({email: email});
       
@@ -69,7 +70,7 @@ class User{
     }
   }
 
-  static async update(id, email, name, role){
+  async update(id, email, name, role){
     var user = await this.findById(id);
 
     if(user != undefined){
@@ -107,7 +108,7 @@ class User{
     }
   }
 
-  static async delete(id){
+  async delete(id){
     var user = await this.findById(id);
     if(user != undefined){
       try{
@@ -120,6 +121,12 @@ class User{
       return {status: false, err: "O usuário não existe, portanto não pode ser deletado."}
     }
   }
+
+  async changePassword(newPassword, id, token){
+    var hash = await bcrypt.hash(newPassword, 10);
+    await knex.update({password: hash}).where({id: id}).table("users");
+    await PasswordToken.setUsed(token);
+  }
 }
  
-module.exports = User;
+module.exports = new User();
