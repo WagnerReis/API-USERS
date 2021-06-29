@@ -64,7 +64,7 @@ class User{
         if(email != undefined){
           if(email != user.email){
             var result = await this.findEmail(email);
-            if(!result){
+            if(! result){
               editUser.email = email;
             }else{
               return { status: false, err: "O e-mail já está cadastrado!"}
@@ -89,6 +89,20 @@ class User{
 
     }else{
       return { status: false, err: "O usuário não existe!"}
+    }
+  }
+
+  static async delete(id){
+    var user = await this.findById(id);
+    if(user != undefined){
+      try{
+        await knex.delete().where({id: id}).table("users");
+        return {status: true}
+      }catch(err){
+        return {status: false, err: err}
+      }
+    }else{
+      return {status: false, err: "O usuário não existe, portanto não pode ser deletado."}
     }
   }
 }
